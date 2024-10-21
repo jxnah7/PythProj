@@ -15,13 +15,36 @@ symbolCount = {
   "C": 6,
   "D": 8
 }
+#symbol multiplier
+symbolValue = {
+  "A": 5,
+  "B": 4,
+  "C": 3,
+  "D": 2
+}
+
+
+def checkWinnings(columns, lines, bet, values):
+  winnings = 0
+  winningLines = []
+  for line in range(lines):#every line in the lines, looping through every row
+    symbol = columns[0][line] #the symbol we wanna check is whatever symbol is in the first column of the current row
+    for column in columns: #now loop through every column and check for that symbol
+      symbolToCheck = column[line] #go to the column and we say, the symbol to check is equal to the column at the current row
+      if symbol != symbolToCheck: #then check if the symbols are not the same
+        break #if not the same we break and go check next line
+    else:
+      winnings += values[symbol] * bet #if we finish for loop without breaking out then the user won
+      winningLines.append(lines + 1)
+  
+  return winnings, winningLines
 
 
 
-
-def getSlotMachineSpin(rows, cols, symbols):
-  allSymbols = []
-  for symbol, symbolCount in symbols.items():
+#function produces the actual slot spin via random
+def getSlotMachineSpin(rows, cols, symbols): #function takes rows, columns, and symbols
+  allSymbols = [] #list containing all symbols we can select from
+  for symbol, symbolCount in symbols.items(): #iterating through dict, 
     for _ in range(symbolCount):  # _ is same as i, unused values in python can use _
       allSymbols.append(symbol)
 
@@ -38,15 +61,16 @@ def getSlotMachineSpin(rows, cols, symbols):
 
   return columns
 
-
+#loop through every row, for every row loop through every column, for every column print current row we are on
 def printSlotMachine(columns):
-  for row in range(len(columns[0])):
-    for i, column in enumerate(columns):
+  for row in range(len(columns[0])): #transposing, get length of columns assuming we always had atleast 1 column
+    for i, column in enumerate(columns): #loop through all columns and only print first value
       if i != len(columns) - 1:
-        print(column[row], "|")
+        print(column[row], end=" | ") #using \n would do this for every column, end="" only affects each row like we want
       else:
-        print(column[row])
+        print(column[row], end="") #if its the last one dont print pipe
 
+    print() #brings us down to next line, since its a newline by default
 
 #collects user input, gets deposit from user 
 def deposit():
@@ -91,11 +115,7 @@ def getBet():
   return amount
 
 
-
-
-#main function to re-run entire program 
-def main():
-  balance = deposit() #this is a function call stored inside balance
+def spin(balance):
   lines = getNumberOfLines() #this is a function call stored inside lines
   while True:
     bet = getBet() #this is a function call stored inside bet
@@ -108,6 +128,26 @@ def main():
       break
 
   print(f"You are betting ${bet} on {lines} lines. Total bet is equal to: ${totalBet}")
+
+  slots = getSlotMachineSpin(ROWS, COLS, symbolCount)
+  printSlotMachine(slots)
+  winnings, winningLines = checkWinnings(slots, lines, bet, symbolValue)
+  print(f"You won ${winnings}.")
+  print(f"You won on lines:", *winningLines)
+
+  return winnings - totalBet
+
+#main function to re-run entire program 
+def main():
+  balance = deposit() #this is a function call stored inside balance
+  while True:
+    print(f"Current balance is: ${balance}")
+    answer = input("Press enter to play (q to quit).")
+    if answer == "q":
+      break
+    balance += spin(balance)
+
+  print(f"You left with ${balance}")
 
 #main function call to actually run the function
 main()
